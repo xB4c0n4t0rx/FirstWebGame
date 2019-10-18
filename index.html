@@ -1,0 +1,275 @@
+
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>topdownshooter</title>
+    <style type="text/css"></style>
+    
+    <script type="text/javascript"
+            src = "simpleGame.js"></script>
+    <script type="text/javascript">
+    var game;
+    var portalNW;
+    var portalNE;
+    var portalSW;
+    var portalSE;
+    var enemy;
+    var player;
+    var bullets;
+    var NUM_BULLETS = 100;
+    var currentBullet = 0;
+    var delay = 0;  //How long between bullets if key is held down
+    var spread = 0;  //How far bullets will spray in degrees. 0 means no spread
+                     //6 means bullets will 'wander' +/- 3 degrees.
+                     //wide spread for less accuracy.
+    var timer;
+    function Enemy(){
+    	tEnemy = new Character("enemy", "enemy.png");
+    	tEnemy.setPosition(32, 32);
+    	tEnemy.setBoundAction(CONTINUE);
+    	tEnemy.checkCollision = function(){
+            //predictive collision detection
+            for (i = 0; i < NUM_BULLETS; i++){
+
+	    		if (this.collidesWith(bullets[i])){
+	    			spawner = Math.floor((Math.random()*100)+1);
+	    			if (spawner <= 100){
+		            	this.setPosition(portalNE.x, portalNE.y);
+		            	if (spawner <= 75){
+			            	this.setPosition(portalSE.x, portalSE.y);
+			            	if (spawner <= 50){
+				            	this.setPosition(portalSW.x, portalSW.y);
+				            	if (spawner <= 25){
+					            	this.setPosition(portalNW.x, portalNW.y);
+					            	
+				    			}
+			    			}
+		    			}
+	    			}
+            	}
+            }
+        }  // end checkCollision
+    	tEnemy.reset = function(){
+            this.setPosition(32, 32);
+        } // end reset
+    	tEnemy.autoMove = function(){
+        	diffOfX = (player.x-this.x);
+        	diffOfY = (player.y-this.y);
+        	diff = (diffOfX/diffOfY);
+        	angle = Math.atan(diff);
+        	if(diffOfX < 0){
+        		if(diffOfY < 0){
+        			this.moveAngle = (360-angle);
+        		}else{
+        			this.moveAngle = (270+angle);
+        		}
+        	}else{
+        		if(diffOfY < 0){
+        			this.moveAngle = (90-angle);
+        		}else{
+        			this.moveAngle = (180-angle);
+        		}
+        	}
+        	this.imgAngle = this.moveAngle
+        	this.setSpeed(-5);
+    	}
+        return tEnemy;
+    }//end Enemy
+    function PortalNW(){
+    	tPortalNW = new Portal();
+    	tPortalNW.setPosition(32, 32);
+    	return tPortalNW;
+    }//end PortalNW
+    function PortalNE(){
+    	tPortalNE = new Portal();
+    	tPortalNE.setPosition(768, 32);
+    	return tPortalNE;
+    }//end PortalNE
+    function PortalSW(){
+    	tPortalSW = new Portal();
+    	tPortalSW.setPosition(768, 568);
+    	return tPortalSW;
+    }//end PortalSW
+    function PortalSE(){
+    	tPortalSE = new Portal();
+    	tPortalSE.setPosition(32, 568);
+    	return tPortalSE;
+    }//end PortalSE
+    function Portal(name, image){
+    	tPortal = new Sprite(game, "portal.png", 64, 64);
+    	tPortal.setSpeed(0);
+    	return tPortal;
+    }//end Portal
+    function Character(name, image){
+    	tChar = new Sprite(game, image, 64, 64);
+    	tChar.name = name;
+    	return tChar;
+    }//end Character
+    function makeBullets(){
+        bullets = new Array(NUM_BULLETS);
+        for (i = 0; i < NUM_BULLETS; i++){
+            bullets[i] = new Bullet();
+        } // end for
+    } // end makeBullets
+    function updateBullets(){
+        for (i = 0; i < NUM_BULLETS; i++){
+            bullets[i].update();
+        } // end for
+        
+    } // end updateBullets
+    
+    function Bullet(){
+        
+        tBullet = new Sprite(game, "bullet.png", 10, 10);
+        
+        tBullet.hide();
+        tBullet.setBoundAction(DIE);
+        tBullet.fire = function(){
+            this.setPosition(player.x, player.y);
+            this.moveAngle = (player.imgAngle);
+            this.setSpeed(-30);
+            //modifier = (Math.random() * spread) - (spread / 2);
+            //this.setMoveAngle(90 + modifier);
+            this.show();
+        } // end fire
+        return tBullet;
+    }//end Bullet
+    function Player(){
+    	tPlayer = new Character("player", "shooter.png");
+    	tPlayer.pause = function(){
+            this.setSpeed(0);
+        }// end tPlayer.pause
+        tPlayer.setPosition(400, 300);
+        tPlayer.checkBounds = function(){
+            //overwrite checkbounds function to give
+            //custom behavior
+            
+            if (this.y < 0){
+            	alert(player.name + " is dead!")
+                document.location.href = "";
+            }
+            if (this.y > game.height){
+            	alert(player.name + " is dead!")
+                document.location.href = "";            
+            }
+            if(this.x < 0){
+            	alert(player.name + " is dead!")
+                document.location.href = "";
+            } // end if
+            if (this.x > game.width){
+            	alert(player.name + " is dead!")
+                document.location.href = "";
+            } // end if
+        } // end checkBounds
+    	tPlayer.checkCollision = function(){
+            //predictive collision detection
+
+    		if (this.collidesWith(enemy1)){
+                //back up and pause
+            	alert(player.name + " is dead!")
+                document.location.href = "";
+            }
+    		if (this.collidesWith(enemy2)){
+                //back up and pause
+            	alert(player.name + " is dead!")
+                document.location.href = "";
+            }
+    		if (this.collidesWith(enemy3)){
+                //back up and pause
+            	alert(player.name + " is dead!")
+                document.location.href = "";
+            }
+    		if (this.collidesWith(enemy4)){
+                //back up and pause
+            	alert(player.name + " is dead!")
+                document.location.href = "";
+            }
+            
+        }  // end checkCollision
+    	tPlayer.checkKeys = function(){
+    		elapsedTime = timer.getElapsedTime();
+    		if (keysDown[K_UP]){
+                if (elapsedTime > delay){
+                    //increment bullet number
+                    currentBullet++;
+                    if (currentBullet >= NUM_BULLETS){
+                        currentBullet = 0;
+                    } // end currentBall if
+                    //fire the new bullet
+    	        	bullets[currentBullet].fire();
+                    timer.reset();    
+                } // end delay if
+    		}
+    		if(keysDown[K_LEFT]){
+        		this.changeImgAngleBy(-10)
+        	}
+    		if(keysDown[K_RIGHT]){
+        		this.changeImgAngleBy(10)
+        	}
+    		if(keysDown[K_A]){
+    			this.changeXby(-10);
+    		}
+    		if(keysDown[K_D]){
+    			this.changeXby(10);
+    		}
+    		if(keysDown[K_W]){
+    			this.changeYby(-10);
+    		}
+    		if(keysDown[K_S]){
+    			this.changeYby(10);
+    		}
+    	}//end tPlayer.checkKeys
+    	tPlayer.pause();
+    	return tPlayer;
+    }//end Player
+    function init(){
+    	game = new Scene();
+    	timer = new Timer();
+        makeBullets();
+    	portalNW = new PortalNW();
+    	portalNE = new PortalNE();
+    	portalSW = new PortalSW();
+    	portalSE = new PortalSE();
+    	player = new Player();
+    	enemy1 = new Enemy();
+    	enemy2 = new Enemy();
+    	enemy2.setPosition(portalNE.x, portalNE.y);
+    	enemy3 = new Enemy();
+    	enemy3.setPosition(portalSW.x, portalSW.y);
+    	enemy4 = new Enemy();
+    	enemy4.setPosition(portalSE.x, portalSE.y);
+        background = new Sprite(game, "background.png", 800, 600);
+        background.setSpeed(0);
+        background.setPosition(400, 300);
+    	game.start();
+    }//end init
+    function update(){
+    	game.clear();
+        background.update();
+    	portalNW.update();
+    	portalNE.update();
+    	portalSW.update();
+    	portalSE.update();
+    	enemy1.autoMove();
+    	enemy2.autoMove();
+    	enemy3.autoMove();
+    	enemy4.autoMove();
+    	player.checkKeys();
+    	player.checkCollision();   
+    	enemy1.checkCollision();
+    	enemy2.checkCollision();
+    	enemy3.checkCollision();
+    	enemy4.checkCollision();
+    	updateBullets();
+    	player.update();
+    	enemy1.update();
+    	enemy2.update();
+    	enemy3.update();
+    	enemy4.update();
+    }//end update
+    </script>
+</head>
+<body onload = "init()">
+</body>
+</html>
